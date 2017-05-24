@@ -419,12 +419,12 @@ function receivedMessage(event) {
       default:
         var happy= '\u23F3'
         //messenger.sendTextMessage(senderID, 'fbmes ' + happy);
-        
+        uploadevent(senderID, messageText);
         
      //   messenger.sendQuickRepliesMessage(senderID, null, quickreplies) 
         //messenger.sendButtonsMessage(senderID, 'I like buttons', buttons); // Sends a buttons message
         
-        sendTextMessage(senderID, messageText);
+        sendTextMessage(senderID, 'Aan dagboek toegevoegd');
         //askquestion(senderID);
     }
   } else if (messageAttachments) {

@@ -718,7 +718,7 @@ function addtoExcel(tokens, senderID){
     var values = [[currentreport.date, currentreport.kidreports[0].answer]]
   
   
-    var spreadsheetId = '1rcOoqcXehoVyXNmUl-kr0GimM16adv7UK3OalOX_0PY'
+    var spreadsheetId = process.env.GSHEETID
     var body = {
   range:"Ik!A:B",
   "majorDimension": "ROWS",
@@ -778,7 +778,7 @@ var fnu = formatDate(d);
     var values = [[fnu, event]]
   
   
-    var spreadsheetId = '1rcOoqcXehoVyXNmUl-kr0GimM16adv7UK3OalOX_0PY'
+    var spreadsheetId = process.env.GSHEETID
     var body = {
   range:"Events!A:B",
   "majorDimension": "ROWS",
@@ -825,7 +825,7 @@ function addKidsExcel(tokens, senderID){
     ]
   
   
-    var spreadsheetId = '1rcOoqcXehoVyXNmUl-kr0GimM16adv7UK3OalOX_0PY'
+    var spreadsheetId = process.env.GSHEETID
     var body = {
   range:"Kinderen!A:D",
   "majorDimension": "ROWS",
@@ -877,7 +877,7 @@ var lastTaken = function(tokens, senderID){
   oauth2Client.setCredentials(tokens);
   sheets.spreadsheets.values.get({
     auth: oauth2Client,
-    spreadsheetId: '1rcOoqcXehoVyXNmUl-kr0GimM16adv7UK3OalOX_0PY',
+    spreadsheetId: process.env.GSHEETID,
     range: 'Ik',
   }, function(err, response) {
     if (err) {
@@ -957,7 +957,7 @@ function addRows(){
   var oauth2Client = getOAuthClient();
   oauth2Client.setCredentials(tokens);
     
-    var spreadsheetId = '1rcOoqcXehoVyXNmUl-kr0GimM16adv7UK3OalOX_0PY'
+    var spreadsheetId = process.env.GSHEETID
     var body = {
   range:"Kids",
   "majorDimension": "ROWS",
@@ -993,7 +993,7 @@ app.use("/details", function (req, res) {
   oauth2Client.setCredentials(tokens);
   sheets.spreadsheets.values.get({
     auth: oauth2Client,
-    spreadsheetId: '1rcOoqcXehoVyXNmUl-kr0GimM16adv7UK3OalOX_0PY',
+    spreadsheetId: process.env.GSHEETID,
     range: 'A1:E',
   }, function(err, response) {
     if (err) {

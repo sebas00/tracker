@@ -26,7 +26,7 @@ var googleAuth = require('google-auth-library');
 
 const ClientId = process.env.GClientID;
 const ClientSecret = process.env.GClientSecret;
-const RedirectionUrl = "https://helix-bulb.glitch.me/oauthCallback";
+const RedirectionUrl = process.env.HERE + "/oauthCallback";
 
 var MongoClient = require('mongodb').MongoClient
   , assert = require('assert');
@@ -42,7 +42,7 @@ var insession = false;
 var endofsession = false;
 var reports = []
 
-var reporttemplate = {name : "kids", type : "kids" ,questions : [{ "Mood" : ["Happy", "Sad", "Angry", "Loving"]}, {"Stress" : ["None", "Some" , "High"]}, {Remarks : ["None"]}]}
+var reporttemplate = {name : "kids", type : "kids" ,questions : [{ "Humeur" : ["Ok", "Verdrietig", "Boos", "Lief"]}, {"Stress" : ["Geen", "Beetje" , "Veel"]}]}
 var reportme = {name : "me", type : "me", questions : [{ "Mood" : ["Happy", "Sad", "Angry", "Loving"]}, {"Food" : ["Normal", "Lots" , "None"]} , {"Stress" : ["None", "Some" , "High"]}, {Remarks : ["None"]}]}
 var medicine ={name : "R", type: "me", questions :[{"Amount" : [0.5 , 1 , 1.5, 2, 2.5]}]};
 
@@ -192,7 +192,8 @@ for (var i = 0; i < arrayLength; i++) {
 }
 
 function startSession(template, senderID){
-  
+d = new Date();
+today = formatDate(d);
   currentreport = { template : template.questions, kidreports : [], reportfor : [], date : today, time : Date.now()};
   insession = true;
   if(template.type == "me"){
@@ -447,8 +448,17 @@ function receivedPostback(event) {
     case "checkr":
       replyCheck(senderID);
       break;
+    case "reportkids":
+      startSession(reporttemplate, senderID);
+      break;
       
                 }
+  
+  if(payload.startsWith('gemeen')){
+    
+    uploadevent(senderID, payload)
+    
+  }
   
   console.log("Received postback for user %d and page %d with payload '%s' " + 
     "at %d", senderID, recipientID, payload, timeOfPostback);
@@ -540,9 +550,23 @@ function callProfileAPI(messageData){
               "payload":"reportkids"
             },
             {
-              "title":"Me",
+              "title":"Gemeen Ok Skylar",
               "type":"postback",
-              "payload":"reportme"
+              "payload":"gemeenoksky"
+            },
+             {
+              "title":"Gemeen Slaan Skylar",
+              "type":"postback",
+              "payload":"gemeenslaansky"
+            },
+             {
+              "title":"Gemeen Ok Sophie",
+              "type":"postback",
+              "payload":"gemeenoksophie"
+            }, {
+              "title":"Gemeen Slaan Sophie",
+              "type":"postback",
+              "payload":"gemeenslaansophie"
             }
           ]
         },
@@ -670,8 +694,11 @@ function uploadreport(senderID){
   console.log(d[d.length - 1].session);
    tokens = d[d.length - 1].session.tokens;
     console.log(tokens);
+    if(currentreport.reportfor[0].name == 'Sophie'){
+     addKidsExcel(tokens, senderID); 
+    } else {
     addtoExcel(tokens, senderID);
-         
+    }
         });
   
   
@@ -708,6 +735,7 @@ function addtoExcel(tokens, senderID){
 }, function (err, response) {
   console.log(err)
   console.log(response)
+      sendTextMessage(senderID, 'uploaded ' + err);
   agenda.schedule('in 180 minutes', 'send reminder', {to: senderID, text : 'R Time!'});
  //lastTaken(tokens);
 });
@@ -717,6 +745,114 @@ function addtoExcel(tokens, senderID){
     
     }
     }
+
+function uploadevent(senderID, event){
+  var tokens;
+  mongoconnection.collection('QuipBotSessions').find({"session.tokens" : {"$exists" : true}}).toArray(function(e, d) {
+            console.log('number of sessions ' + d.length);
+        
+  console.log(d[d.length - 1].session);
+   tokens = d[d.length - 1].session.tokens;
+    console.log(tokens);
+    
+     addEvent(tokens, senderID, event); 
+    
+        });
+  
+  
+  
+}
+
+function addEvent(tokens, senderID, event){
+    
+  var sheets = google.sheets('v4');
+  
+  //  var tokens =    req.session["tokens"];
+  var oauth2Client = getOAuthClient();
+  oauth2Client.setCredentials(tokens);
+    
+  console.log(currentreport);
+  
+    var nu = new Date();
+var fnu = formatDate(d);
+    var values = [[fnu, event]]
+  
+  
+    var spreadsheetId = '1rcOoqcXehoVyXNmUl-kr0GimM16adv7UK3OalOX_0PY'
+    var body = {
+  range:"Events!A:B",
+  "majorDimension": "ROWS",
+  "values": values
+}
+    
+    
+    sheets.spreadsheets.values.append({
+  auth: oauth2Client,
+   spreadsheetId: spreadsheetId,
+  range:"Events!A:B",
+  valueInputOption: 'USER_ENTERED',
+  resource: body,
+}, function (err, response) {
+  console.log(err)
+  console.log(response)
+      sendTextMessage(senderID, 'uploaded ' + err);
+  agenda.schedule('in 180 minutes', 'send reminder', {to: senderID, text : 'R Time!'});
+ //lastTaken(tokens);
+});
+  
+    
+    
+    
+    
+    }
+
+
+
+
+function addKidsExcel(tokens, senderID){
+    
+  var sheets = google.sheets('v4');
+  
+  //  var tokens =    req.session["tokens"];
+  var oauth2Client = getOAuthClient();
+  oauth2Client.setCredentials(tokens);
+    
+  console.log(currentreport);
+  if(currentreport.reportfor[0].name == 'Sophie'){
+    var values = [["","","",""],
+      [currentreport.date, currentreport.kidreports[0].answer, currentreport.kidreports[2].answer, currentreport.kidreports[4].answer],   
+    ["", currentreport.kidreports[1].answer, currentreport.kidreports[3].answer, currentreport.kidreports[5].answer]
+    ]
+  
+  
+    var spreadsheetId = '1rcOoqcXehoVyXNmUl-kr0GimM16adv7UK3OalOX_0PY'
+    var body = {
+  range:"Kinderen!A:D",
+  "majorDimension": "ROWS",
+  "values": values
+}
+    
+    
+    sheets.spreadsheets.values.append({
+  auth: oauth2Client,
+   spreadsheetId: spreadsheetId,
+  range:"Kinderen!A:D",
+  valueInputOption: 'USER_ENTERED',
+  resource: body,
+}, function (err, response) {
+  console.log(err)
+  console.log(response)
+  sendTextMessage(senderID, 'uploaded ' + err);
+  agenda.schedule('in 180 minutes', 'send reminder', {to: senderID, text : 'Kinderen report Time!'});
+ //lastTaken(tokens);
+});
+  
+    
+    
+    
+    }
+    }
+
 
 function replyCheck(senderID){
   var tokens;
@@ -775,22 +911,22 @@ msec -= mm * 1000 * 60;
 var ss = Math.floor(msec / 1000);
 msec -= ss * 1000;
       var statustext;
-      console.log(hh)
-      console.log(row[1])
-      if(hh => 2 && row[1] <= 1 ){
-        statustext = ' Ga d\'r voor!'
-        console.log('2 of meer')
-      } else if(hh => 3 )
-      { statustext = ' Ga d\'r voor!'
-      console.log('3 uur of meer')
-      } else
+      console.log(typeof hh);
+      console.log(row[1]);
+      if(hh == 2 && (row[1] == 0.5 || row[1] == 1 || row[1] == 1.5)){
+        statustext = ' Ga d\'r voor!';
+        console.log('2 of meer');
+      } else if(hh == 3 )
+      { statustext = ' Ga d\'r voor!';
+      console.log('3 uur of meer');
+      } else if(hh == 0 || hh == 1)
       {
         statustext = ' Nog even wachten'
       }
       
       
       sendTextMessage(senderID, hh + ' uur ' + mm + ' minuten geleden nam je er ' + row[1] + statustext);
-      agenda.schedule('in 30 seconds', 'send reminder', {to: senderID, text : 'checked 30 seconds ago'});
+      //agenda.schedule('in 30 seconds', 'send reminder', {to: senderID, text : 'checked 30 seconds ago'});
     }
   });
   

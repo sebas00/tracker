@@ -780,7 +780,7 @@ var fnu = formatDate(d);
   
     var spreadsheetId = process.env.GSHEETID
     var body = {
-  range:"Events!A:B",
+  range:"Dagboek!A:B",
   "majorDimension": "ROWS",
   "values": values
 }
@@ -789,7 +789,7 @@ var fnu = formatDate(d);
     sheets.spreadsheets.values.append({
   auth: oauth2Client,
    spreadsheetId: spreadsheetId,
-  range:"Events!A:B",
+  range:"Dagboek!A:B",
   valueInputOption: 'USER_ENTERED',
   resource: body,
 }, function (err, response) {

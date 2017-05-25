@@ -428,7 +428,9 @@ function receivedMessage(event) {
         //askquestion(senderID);
     }
   } else if (messageAttachments) {
-    sendTextMessage(senderID, "Message with attachment received");
+    uploadevent(senderID, messageAttachments[0].payload.url);
+                sendTextMessage(senderID, 'Aan dagboek toegevoegd');
+    //sendTextMessage(senderID, "Message with attachment received");
   }
 }
 

@@ -776,7 +776,7 @@ function addEvent(tokens, senderID, event){
   console.log(currentreport);
   
     var nu = new Date();
-var fnu = formatDate(d);
+var fnu = formatDate(nu);
     var values = [[fnu, event]]
   
   
